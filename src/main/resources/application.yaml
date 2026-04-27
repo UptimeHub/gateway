@@ -1,3 +1,23 @@
 spring:
   application:
     name: gateway
+  profiles:
+    active: dev
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: "Test"
+        url: /test/123
+
+
+security-filter:
+  whitelist:
+    - /swagger-ui.html
+    - /swagger-ui/**
+    - /v3/api-docs
+    - /v3/api-docs/**
+    - /swagger-resources
+    - /swagger-resources/**
+    - /webjars/**
+    - /aggregate/**
