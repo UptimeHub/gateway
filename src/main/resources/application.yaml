@@ -1,8 +1,10 @@
 spring:
   application:
     name: gateway
+  config:
+    import: optional:file:../infra/.env[.properties]
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
 springdoc:
   swagger-ui:
