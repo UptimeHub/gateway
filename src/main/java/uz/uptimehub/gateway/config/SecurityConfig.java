@@ -15,11 +15,10 @@ import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -73,30 +72,40 @@ public class SecurityConfig {
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
         var defaultConverter = new JwtGrantedAuthoritiesConverter();
-        Collection<GrantedAuthority> authorities = defaultConverter.convert(jwt);
+
+        Collection<GrantedAuthority> authorities =
+                new ArrayList<>(defaultConverter.convert(jwt));
 
         Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-        if (resourceAccess == null) {
-            return authorities;
+
+        addClientRoles(authorities, resourceAccess, "main-client", "ROLE_");
+        addClientRoles(authorities, resourceAccess, "account", "");
+
+        return authorities;
+    }
+
+    private void addClientRoles(
+            Collection<GrantedAuthority> authorities,
+            Map<String, Object> resourceAccess,
+            String clientName,
+            String prefix
+    ) {
+        if (resourceAccess == null) return;
+
+        Object clientAccessObj = resourceAccess.get(clientName);
+
+        if (!(clientAccessObj instanceof Map<?, ?> clientAccess)) {
+            return;
         }
 
-        @SuppressWarnings("unchecked")
-        Collection<GrantedAuthority> clientRoles = resourceAccess.values().stream()
-                .filter(Map.class::isInstance)
-                .map(client -> (Map<String, Object>) client)
-                .filter(client -> client.containsKey("roles"))
-                .flatMap(client -> {
-                    Object roles = client.get("roles");
-                    if (roles instanceof List<?> roleList) {
-                        return roleList.stream()
-                                .filter(String.class::isInstance)
-                                .map(role -> new SimpleGrantedAuthority("ROLE_" + role));
-                    }
-                    return Stream.empty();
-                })
-                .collect(Collectors.toSet());
+        Object rolesObj = clientAccess.get("roles");
 
-        return Stream.concat(authorities.stream(), clientRoles.stream())
-                .collect(Collectors.toSet());
+        if (!(rolesObj instanceof Collection<?> roles)) return;
+
+        roles.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .map(role -> new SimpleGrantedAuthority(prefix + role))
+                .forEach(authorities::add);
     }
 }
