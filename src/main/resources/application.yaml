@@ -5,12 +5,32 @@ spring:
     import: optional:file:../infra/.env[.properties]
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: core-api
+              uri: ${CORE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/**
+            - id: core-openapi
+              uri: ${CORE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/aggregate/core/v3/api-docs,/aggregate/core/v3/api-docs/**
+              filters:
+                - RewritePath=/aggregate/core/(?<segment>.*), /$\{segment}
 
 springdoc:
   swagger-ui:
+    disable-swagger-default-url: true
+    oauth:
+      client-id: ${OAUTH_CLIENT_ID:frontend-client}
+      use-pkce-with-authorization-code-grant: true
+      scopes: openid profile email
     urls:
-      - name: "Test"
-        url: /test/123
+      - name: Core
+        url: /aggregate/core/v3/api-docs
 
 
 security-filter:
@@ -23,3 +43,6 @@ security-filter:
     - /swagger-resources/**
     - /webjars/**
     - /aggregate/**
+
+server:
+  port: 8899
