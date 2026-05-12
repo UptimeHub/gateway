@@ -1,0 +1,22 @@
+name: Gateway CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  gateway:
+    uses: UptimeHub/infra/.github/workflows/java-service-ci.yml@main
+    with:
+      java-version: 25
+      working-directory: "."
+      image-name: gateway
+      dockerfile: "./Dockerfile"
+      docker-context: "."
+      publish-image: ${{ github.event_name == 'push' }}
