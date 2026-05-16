@@ -15,10 +15,7 @@ import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -66,46 +63,62 @@ public class SecurityConfig {
     @Bean
     public ReactiveJwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new ReactiveJwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> Flux.fromIterable(extractAuthorities(jwt)));
+
+        converter.setJwtGrantedAuthoritiesConverter(jwt ->
+                Flux.fromIterable(extractAuthorities(jwt))
+        );
+
         return converter;
     }
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
+
         var defaultConverter = new JwtGrantedAuthoritiesConverter();
+        Collection<GrantedAuthority> defaultAuthorities = defaultConverter.convert(jwt);
 
-        Collection<GrantedAuthority> authorities =
-                new ArrayList<>(defaultConverter.convert(jwt));
+        Set<GrantedAuthority> authorities = new HashSet<>(defaultAuthorities);
 
-        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-
-        addClientRoles(authorities, resourceAccess, "main-client", "ROLE_");
-        addClientRoles(authorities, resourceAccess, "account", "");
+        addRealmRoles(authorities, jwt);
+        addPermissions(authorities, jwt);
 
         return authorities;
     }
 
-    private void addClientRoles(
-            Collection<GrantedAuthority> authorities,
-            Map<String, Object> resourceAccess,
-            String clientName,
-            String prefix
-    ) {
-        if (resourceAccess == null) return;
+    private void addRealmRoles(Collection<GrantedAuthority> authorities, Jwt jwt) {
+        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
 
-        Object clientAccessObj = resourceAccess.get(clientName);
-
-        if (!(clientAccessObj instanceof Map<?, ?> clientAccess)) {
+        if (realmAccess == null) {
             return;
         }
 
-        Object rolesObj = clientAccess.get("roles");
+        Object rolesObj = realmAccess.get("roles");
 
-        if (!(rolesObj instanceof Collection<?> roles)) return;
+        if (!(rolesObj instanceof Collection<?> roles)) {
+            return;
+        }
 
         roles.stream()
                 .filter(String.class::isInstance)
                 .map(String.class::cast)
-                .map(role -> new SimpleGrantedAuthority(prefix + role))
+                .map(String::trim)
+                .filter(role -> !role.isBlank())
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .forEach(authorities::add);
+    }
+
+    private void addPermissions(Collection<GrantedAuthority> authorities, Jwt jwt) {
+        Object permissionsObj = jwt.getClaim("permissions");
+
+        if (!(permissionsObj instanceof Collection<?> permissions)) {
+            return;
+        }
+
+        permissions.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .map(String::trim)
+                .filter(permission -> !permission.isBlank())
+                .map(SimpleGrantedAuthority::new)
                 .forEach(authorities::add);
     }
 }
