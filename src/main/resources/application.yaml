@@ -58,5 +58,10 @@ security-filter:
     - /webjars/**
     - /aggregate/**
 
+    ## Core Service Open Endpoints
+    - /api/core/organization/all/**
+    - /api/core/organization/summary/**
+    - /api/core/organization/filters/**
+
 server:
   port: 8899
