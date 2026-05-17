@@ -43,6 +43,9 @@ springdoc:
       - name: Core
         url: /aggregate/core/v3/api-docs
 
+      - name: Resource
+        url: /aggregate/resource/v3/api-docs
+
 
 security-filter:
   whitelist:
