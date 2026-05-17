@@ -13,13 +13,24 @@ spring:
             - id: core-api
               uri: ${CORE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/**
+                - Path=/api/core/**
             - id: core-openapi
               uri: ${CORE_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/aggregate/core/v3/api-docs,/aggregate/core/v3/api-docs/**
               filters:
                 - RewritePath=/aggregate/core/(?<segment>.*), /$\{segment}
+
+            - id: resource-api
+              uri: ${RESOURCE_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/resource/**
+            - id: resource-openapi
+              uri: ${RESOURCE_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/aggregate/resource/v3/api-docs,/aggregate/resource/v3/api-docs/**
+              filters:
+                - RewritePath=/aggregate/resource/(?<segment>.*), /$\{segment}
 
 springdoc:
   swagger-ui:
