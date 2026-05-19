@@ -47,6 +47,10 @@ public class SecurityConfig {
                                 .pathMatchers(HttpMethod.PATCH, "/api/core/provider-type/**").hasRole("PLATFORM_ADMIN")
                                 .pathMatchers(HttpMethod.GET, "/api/core/provider-type/**").permitAll()
 
+                                // Resource endpoints
+                                .pathMatchers(HttpMethod.POST, "/api/resource/category/**").hasRole("PLATFORM_ADMIN")
+                                .pathMatchers(HttpMethod.PATCH, "/api/resource/category/**").hasRole("PLATFORM_ADMIN")
+                                .pathMatchers(HttpMethod.GET, "/api/resource/category/**").permitAll()
                                 .anyExchange()
                                 .authenticated()
                 )
