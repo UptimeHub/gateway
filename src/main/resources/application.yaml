@@ -32,6 +32,26 @@ spring:
               filters:
                 - RewritePath=/aggregate/resource/(?<segment>.*), /$\{segment}
 
+            - id: booking-api
+              uri: ${BOOKING_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/booking/**,/api/admin/booking/**
+            - id: booking-websocket
+              uri: ${BOOKING_SERVICE_WS_URL:ws://localhost:8083}
+              predicates:
+                - Path=/ws,/ws/**
+                - Header=Upgrade, websocket
+            - id: booking-websocket-sockjs
+              uri: ${BOOKING_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/ws,/ws/**
+            - id: booking-openapi
+              uri: ${BOOKING_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/aggregate/booking/v3/api-docs,/aggregate/booking/v3/api-docs/**
+              filters:
+                - RewritePath=/aggregate/booking/(?<segment>.*), /$\{segment}
+
 springdoc:
   swagger-ui:
     disable-swagger-default-url: true
@@ -45,6 +65,9 @@ springdoc:
 
       - name: Resource
         url: /aggregate/resource/v3/api-docs
+
+      - name: Booking
+        url: /aggregate/booking/v3/api-docs
 
 
 security-filter:
@@ -62,6 +85,9 @@ security-filter:
     - /api/core/organization/all/**
     - /api/core/organization/summary/**
     - /api/core/organization/filters/**
+
+    ## Booking Service Open Endpoints
+    - /api/booking/resource/availability/**
 
 server:
   port: 8899
