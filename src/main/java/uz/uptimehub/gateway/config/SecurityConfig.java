@@ -58,6 +58,9 @@ public class SecurityConfig {
                                 .pathMatchers(HttpMethod.POST, "/api/resource/**").hasRole("ORGANIZATION_ADMIN")
                                 .pathMatchers(HttpMethod.PATCH, "/api/resource/**").hasRole("ORGANIZATION_ADMIN")
                                 .pathMatchers(HttpMethod.GET, "/api/resource/**").permitAll()
+
+                                // Booking Admin endpoints
+                                .pathMatchers("/api/admin/booking/**").hasRole("ORGANIZATION_ADMIN")
                                 .anyExchange()
                                 .authenticated()
                 )
