@@ -85,6 +85,8 @@ security-filter:
     - /swagger-resources/**
     - /webjars/**
     - /aggregate/**
+    - /actuator/health
+    - /actuator/health/**
 
     ## Core Service Open Endpoints
     - /api/core/organization/all/**

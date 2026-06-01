@@ -26,6 +26,7 @@ permissions:
 jobs:
   gateway:
     uses: UptimeHub/infra/.github/workflows/java-service-ci.yml@main
+    secrets: inherit
     with:
       java-version: 25
       working-directory: "."
@@ -33,3 +34,13 @@ jobs:
       dockerfile: "./Dockerfile"
       docker-context: "."
       publish-image: ${{ github.event_name == 'push' }}
+      deploy: ${{ github.event_name == 'push' }}
+      deploy-container-name: gateway
+      deploy-image-name: "ghcr.io/uptimehub/gateway"
+      deploy-run-options: >-
+        --restart unless-stopped
+        --network infra_booking-network
+        -p 8899:8899
+        --env-file /opt/uptimehub/env/gateway.env
+      deploy-healthcheck-url: http://localhost:8899/actuator/health
+      deploy-healthcheck-timeout-seconds: 90
